@@ -12,7 +12,7 @@ inline bool checkInvalidArgc(const int __argCount) { return (__argCount == 1) ||
 
 int main(int argc, char const *argv[])
 {
-    system("cls");
+    system(clearCommand);
 
     FileCopyOperator FileCopyOp;
 
