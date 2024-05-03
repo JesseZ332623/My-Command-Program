@@ -52,7 +52,7 @@ std::string FileCopyOperator::getFileType(const std::string & __srcFile)
 std::string FileCopyOperator::getFileName(const std::string & __srcFile)
 {
     // 查找最后一个 '/' 或 '\' （由于已使用 forwardBackwardSwitch 统一过，此处可只查找 '/'
-    std::size_t pathPos = __srcFile.rfind('\\');
+    std::size_t pathPos = __srcFile.rfind(OS_SPECIFIC_SLASH);
 
     // 若找不到 '/'，则返回空字符串
     if (pathPos == std::string::npos) { return ""; }
