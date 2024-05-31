@@ -29,7 +29,7 @@ void FileCopyOperator::forwardBackwardSwitch(std::string & __path)
         若在 __srcFile 中没有找到 / 或 \ 字符，
         则代表它可能是一个纯文件，或者非法字符串，直接原路返回就好。
     */
-    if ((__path.find('/') == __path.npos) && (__path.find('\\') == __path.npos)) { return; }
+    if ((__path.find(OS_SPECIFIC_SLASH) == __path.npos)) { return; }
 
     std::replace(__path.begin(), __path.end(), '/', OS_SPECIFIC_SLASH);
     std::replace(__path.begin(), __path.end(), '\\', OS_SPECIFIC_SLASH);

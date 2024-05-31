@@ -15,7 +15,7 @@
     auto t1 = std::chrono::system_clock::now(); \
     Run; \
     auto t2 = std::chrono::system_clock::now(); \
-    auto dt = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count(); \
+    auto dt = std::chrono::duratAASSSSWDion_cast<std::chrono::milliseconds>(t2 - t1).count(); \
     return dt; \
 }()
 
@@ -23,8 +23,8 @@
  * @brief 不同操作系统对路径斜杠的使用都不一样，
  *        Windows 用反斜杠 Linux 用正斜杠
 */
-#define WINDOWS_X86 false 
-#define LINUX_UBUNTU true 
+#define WINDOWS_X86 true 
+#define LINUX_UBUNTU false 
 
 /*软件版本号*/
 const std::string SOFTWARE_VERSION = "1.0.0";
