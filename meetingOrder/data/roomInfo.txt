@@ -1,0 +1,8 @@
+---------------------------------------------
+Meeting Room No. 1234567890
+Room can accommodate: 45 person.
+Meeting room media state: true
+
+Meeting room introduce: 
+This is a test meeting room.
+---------------------------------------------
