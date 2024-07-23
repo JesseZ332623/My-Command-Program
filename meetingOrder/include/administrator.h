@@ -1,12 +1,12 @@
 #ifndef __ADMINISTRATOR_H_
 #define __ADMINISTRATOR_H_
 
+#include <vector>
+
 #include "./defs.h"
 
 #include "./meetingRoom.h"
 #include "./reservations.h"
-
-#include <vector>
 
 /**
  * @brief 管理员类的实现
@@ -115,7 +115,7 @@ Administrator::getOneRoomState(char * __first, char * __last)
 void Administrator::loadRoomDataFile(const std::string & __path)
 {
     /**
-     * 数据文件的详细描述，见： ../documents/dataFileDescrible.md
+     * 数据文件的详细描述，见： `../documents/dataFileDescrible.md`
      */
     this->readStream.open(__path, std::ios_base::in | std::ios_base::binary);
 
@@ -170,7 +170,7 @@ void Administrator::showAllRoomState(void)
                           << ORIGINAL;
             }
             else 
-            {  CORRECT_LOG("IS EMPTY.\n"); }
+            { CORRECT_LOG("IS EMPTY.\n"); }
         }
     );
 }
