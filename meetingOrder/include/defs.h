@@ -5,6 +5,6 @@
 #include <fstream>
 
 static const std::string DATAFILE_PATH = "../data/meet_room_info.dat";  // 数据文件路径
-static const std::string ADMINISTRATOR_INFO_PATH = "../data/administratorInfo.txt";
+static const std::string ADMINISTRATOR_INFO_PATH = "../data/administratorInfo.dat";
 
 #endif // __DEFS_H_
