@@ -4,7 +4,14 @@ int main(int argc, char const *argv[])
 {
     Administrator testAdministrator;
 
-    testAdministrator.showAllRoomState();
+    while (true)
+    {
+        testAdministrator.login();
+
+        testAdministrator.showAllRoomState();
+
+        testAdministrator.logout();
+    }
     
     return EXIT_SUCCESS;
 }
