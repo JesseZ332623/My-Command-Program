@@ -1,12 +1,12 @@
 #ifndef __ADMINISTRATOR_H_
 #define __ADMINISTRATOR_H_
 
-#include <vector>
-
 #include "./defs.h"
 
 #include "./meetingRoom.h"
 #include "./reservations.h"
+
+#include <vector>
 
 /**
  * @brief 管理员类的实现
@@ -31,6 +31,28 @@ class Administrator
         {
             std::string userName;
             std::string passWord;
+
+            /**
+             * @brief 将管理员账号信息写入到指定的文件中
+             * 
+             * @param __writeStream     输出文件流
+             * @param offset            偏移量
+             */
+            void writeToFile(std::ofstream & __writeStream, const int offset);
+
+            /**
+             * @brief 清理掉整个对象的数据，
+             *        防止有心之人中断程序后在内核转储文件里面拿到明文密码。
+             */
+            void clearInfo(void) { this->userName.clear(); this->passWord.clear(); }
+
+            /**
+             * @brief 比对两个管理员信息的密码数据是否完全相同，这用于登录时的判断。
+             */
+            friend bool operator==(const AdministratorInfo & __a, const AdministratorInfo & __b)
+            {
+                return ((__b.passWord == __a.passWord));
+            }
         };
 
         // 用一个动态数组来管理所有的会议室
@@ -60,14 +82,29 @@ class Administrator
          * 
          * @return std::streamsize      一个文件的实际字节数
          */
-        std::streamsize getFileBytes(std::ifstream & __inputFstream, std::streamoff __currentFpos)
-        {
-            __inputFstream.seekg(0, std::ios_base::end);
-            std::streamsize fileBytes = __inputFstream.tellg();
-            __inputFstream.seekg(__currentFpos, std::ios_base::beg);
+        std::streamsize getFileBytes(std::ifstream & __inputFstream);
 
-            return fileBytes;
-        }
+        /**
+         * @brief 对管理员密码进行加密操作，使用凯撒密码。
+         * 
+         * @param __password        管理员密码（明文）
+         * 
+         * @return int              明文的偏移量
+         */
+        int encryption(std::string & __password);
+
+        /**
+         * @brief 从管理员账户数据文件中读取密文，
+         *        解密后返回。
+         * 
+         * @return std::string      解密后的明文
+         */
+        AdministratorInfo decryption(void);
+
+        /**
+         * @brief 在管理员密码文件不为空的时候，进行注册操作。
+        */
+        void administratorRegister(void);
 
         /**
          * @brief 解析缓冲区中的 [__first, __last) 范围内的数据，
@@ -77,102 +114,30 @@ class Administrator
          * @param __last    数据块尾部
          * 
          * @return MettingRoomState 
-         */
+        */
         MettingRoomState getOneRoomState(char * __first, char * __last);
 
     public:
 
         /**
-         * @brief 默认构造函数，未完成。
-         */
-        Administrator() : roomRecord(), reservationRecord(), administratorInfo() 
-        { 
-            this->loadRoomDataFile(DATAFILE_PATH); 
-        }
+         * @brief 默认构造函数。
+        */
+        Administrator(void); 
+       
+        /**
+         * @brief 如果确认管理员账户信息存在的话，进行登录操作。
+        */
+        void login(void);
 
+        /**
+         * @brief 管理员登出操作。
+         */
+        bool logout(void);
+
+        /**
+         * @brief 输出当前所有会议室的信息和占用状态。
+        */
         void showAllRoomState(void);
 };
-
-Administrator::MettingRoomState
-Administrator::getOneRoomState(char * __first, char * __last)
-{
-    std::size_t roomNoLen  = *reinterpret_cast<std::size_t *>(__first + sizeof(std::size_t));
-    std::string roomNo(
-                __first + sizeof(std::size_t) * 2, 
-                __first + sizeof(std::size_t) * 2 + roomNoLen
-            );
-    std::size_t accomodateCount = *reinterpret_cast<std::size_t *>(__first + sizeof(std::size_t) * 2 + roomNoLen);
-    bool hasMadia = *reinterpret_cast<bool *>(__first + sizeof(std::size_t) * 3 + roomNoLen);
-    std::size_t introLen = *reinterpret_cast<std::size_t *>(__first + sizeof(std::size_t) * 3 + roomNoLen + 1);
-    std::string introduce(
-        __first + sizeof(std::size_t) * 4 + 1 + roomNoLen, 
-        __first + sizeof(std::size_t) * 4 + 1 + roomNoLen + introLen
-    );
-    
-    return {{roomNo, accomodateCount, hasMadia, introduce}, false};
-}
-  
-void Administrator::loadRoomDataFile(const std::string & __path)
-{
-    /**
-     * 数据文件的详细描述，见： `../documents/dataFileDescrible.md`
-     */
-    this->readStream.open(__path, std::ios_base::in | std::ios_base::binary);
-
-    if (!this->readStream.is_open())                            // 打开文件
-    {
-        throw std::runtime_error("Can't open file: " + __path);
-    }
-
-    std::streamsize fileBytes = getFileBytes(this->readStream, this->readStream.tellg());
-
-    char * buffer = new char[fileBytes];                          // 构建缓冲区，将整个文件的数据读入
-    char * bufferBegin   = buffer;                                // 辅助指针，指向缓冲区之首
-    char * bufferCurrent = buffer;                                // 辅助指针，指向缓冲区当前的操作位置
-    char * bufferEnd     = buffer + fileBytes;                    // 辅助指针，指向缓冲区之尾
-
-    this->readStream.read(buffer, fileBytes);                     // 将整个文件的数据读入
-
-#if true
-    /**
-     * 在解析完整个缓冲区之前。
-     */
-    while (bufferCurrent != bufferEnd)
-    {
-        std::size_t objectSize = *reinterpret_cast<std::size_t *>(bufferCurrent);
-
-        this->roomRecord.push_back(this->getOneRoomState(bufferCurrent, bufferCurrent + objectSize));
-
-        bufferCurrent += objectSize;
-    }
-#endif
-
-    delete[] buffer;
-    this->readStream.close();
-}
-
-void Administrator::showAllRoomState(void)
-{
-    using namespace MyLib::MyLoger;
-
-    std::for_each(
-        this->roomRecord.begin(), this->roomRecord.end(),
-        [](const Administrator::MettingRoomState & __meettingState)
-        {
-            __meettingState.mettingRoom.show();
-
-            NOTIFY_LOG('[' + getCurrentTime() + " Administrator]: This meetting room\n");
-
-            if (__meettingState.hasocuupied)
-            {
-                std::cout << ERROR 
-                          << "HAS BEEN OCCUPIEDED.\n" 
-                          << ORIGINAL;
-            }
-            else 
-            { CORRECT_LOG("IS EMPTY.\n"); }
-        }
-    );
-}
 
 #endif // __ADMINISTRATOR_H_
