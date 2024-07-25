@@ -2,16 +2,27 @@
 
 int main(int argc, char const *argv[])
 {
+    using namespace MyLib::MyLoger;
+
     Administrator testAdministrator;
 
-    while (true)
+    char ifQuit;
+
+    testAdministrator.login();
+
+    while (ifQuit != 'q')
     {
-        testAdministrator.login();
+        testAdministrator.addNewMeetingRoom();
 
-        testAdministrator.showAllRoomState();
+        testAdministrator.getOneRoomState();
 
-        testAdministrator.logout();
+        NOTIFY_LOG("Quit to search and add? (Enter q to quit): ");
+        std::cin >> ifQuit;
+
+        MyLib::cinCheck::eatLine();
     }
+
+    testAdministrator.logout();
     
     return EXIT_SUCCESS;
 }
