@@ -6,7 +6,7 @@
 /**
  * @brief 会议室类设计
  */
-typedef class __Meeting_Room
+class Meeting_Room
 {
     private:
         std::string roomNo;             // 会议室编号（8 位任意字符的字符串）
@@ -30,7 +30,7 @@ typedef class __Meeting_Room
         /**
          * @brief 默认构造函数，初始化一个空会议室。
          */
-        __Meeting_Room() : 
+        Meeting_Room() : 
         roomNo("00000000"), roomContain(0ULL), hasMidia(false), introduce() {}
         
         /**
@@ -41,21 +41,30 @@ typedef class __Meeting_Room
          * @param __hasMidia        会议室是否支持多媒体
          * @param __introdeuce      会议室介绍
          */
-        __Meeting_Room(
+        Meeting_Room(
                         std::string __no, std::size_t __peoples, 
                         bool __hasMidia, std::string __introdeuce
         ) : roomNo(__no.substr(0, 8)), roomContain(__peoples), hasMidia(__hasMidia), introduce(__introdeuce)
         {}
 
+        //Meeting_Room(const Meeting_Room &) = default;
+
         /**
          * @brief 将类数据序列化后写到数据文件中去。
          */
-        void writeToFile(void);
+        void writeToFile(std::ofstream & __outputData);
 
         /**
          * @brief 从标注输入流里面读取会议室数据。
          */
         void inputInfo(void);
+
+        /**
+         * @brief Get the Meeting Room No object
+         * 
+         * @return std::string& 
+         */
+        std::string & getMeetingRoomNo(void) { return this->roomNo; }
 
         /**
          * @brief 往标准输出流输出会议室信息，文字渲染颜色。
@@ -74,26 +83,26 @@ typedef class __Meeting_Room
          * @param __os                  标准输出流
          * @param __info                __Meeting_Room 类             
          */
-        friend std::ostream & operator<<(std::ostream & __os, const __Meeting_Room & __info);
+        friend std::ostream & operator<<(std::ostream & __os, const Meeting_Room & __info);
 
         /**
          * @brief 通过比较 roomNo 来比较 __a 是否小于 __b。
          */
-        friend bool operator<(const __Meeting_Room & __a, const __Meeting_Room & __b) 
+        friend bool operator<(const Meeting_Room & __a, const Meeting_Room & __b) 
         { return (__a.roomNo < __b.roomNo); }
 
         /**
          * @brief 通过比较 roomNo 来比较 __a 是否大于 __b。
          */
-        friend bool operator>(const __Meeting_Room & __a, const __Meeting_Room & __b) 
+        friend bool operator>(const Meeting_Room & __a, const Meeting_Room & __b) 
         { return (__a.roomNo > __b.roomNo); }
 
         /**
          * @brief 通过比较 roomNo 来比较 __a 是否等于 __b。
          */
-        friend bool operator==(const __Meeting_Room & __a, const __Meeting_Room & __b) 
+        friend bool operator==(const Meeting_Room & __a, const Meeting_Room & __b) 
         { return (__a.roomNo == __b.roomNo); }
         
-} Meeting_Room;
+};
 
 #endif // __MEETING_ROOM_H_
