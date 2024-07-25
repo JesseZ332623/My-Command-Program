@@ -1,10 +1,43 @@
 #include "../include/administrator.h"
 
-#include <cctype>
 #include <cstdlib>
 
+void Administrator::MettingRoomState::
+getStateInfo(void)
+{
+    using namespace MyLib::MyLoger;
+
+    this->mettingRoom.inputInfo();
+    NOTIFY_LOG("This meeting room has been occupied? (0 = false | 1 = true)");
+    std::cin >> this->hasocuupied;
+
+    MyLib::cinCheck::eatLine();
+
+    CORRECT_LOG("Complete to input state info!\n");
+}
+
+void Administrator::MettingRoomState::
+writeRoomStateTofile(std::ofstream & __writeStream)
+{
+    using std::ios_base;
+    using namespace MyLib::MyLoger;
+
+    //__writeStream.open(DATAFILE_PATH, ios_base::out | ios_base::app);
+
+    this->mettingRoom.writeToFile(__writeStream);
+
+    __writeStream.open(DATAFILE_PATH, ios_base::out | ios_base::app | ios_base::binary);
+
+    //__writeStream.seekp(0, ios_base::end);
+    __writeStream.write(reinterpret_cast<char *>(&this->hasocuupied), sizeof(bool));
+
+    __writeStream.close();
+
+    CORRECT_LOG("OK! Write to file: [" + DATAFILE_PATH + "]\n");
+}
+
 void Administrator::AdministratorInfo::
-writeToFile(std::ofstream & __writeStream, const int offset)
+writeAdminInfoToFile(std::ofstream & __writeStream, const int offset)
 {
     using std::ios_base;
     
@@ -40,12 +73,30 @@ Administrator::getFileBytes(std::ifstream & __inputFstream)
     if (fileBytes == -1) {
         throw std::runtime_error("Failed to determine file size.");
     }
-
     // read 指针归位
     __inputFstream.seekg(originalPos);
 
     return fileBytes;
 }
+
+void Administrator::showOneRoomState(const MettingRoomState & __meettingState)
+{
+    using namespace MyLib::MyLoger;
+            
+    __meettingState.mettingRoom.show();
+
+    NOTIFY_LOG('[' + getCurrentTime() + " Administrator]: This meetting room\n");
+
+    if (__meettingState.hasocuupied)
+    {
+        std::cout << ERROR 
+                  << "HAS BEEN OCCUPIEDED.\n" 
+                  << ORIGINAL;
+    }
+    else 
+    { CORRECT_LOG("IS EMPTY.\n"); }
+}
+
 
 Administrator::MettingRoomState
 Administrator::getOneRoomState(char * __first, char * __last)
@@ -62,8 +113,9 @@ Administrator::getOneRoomState(char * __first, char * __last)
         __first + sizeof(std::size_t) * 4 + 1 + roomNoLen, 
         __first + sizeof(std::size_t) * 4 + 1 + roomNoLen + introLen
     );
+    bool isoccupaid = (bool)(*__last);
     
-    return {{roomNo, accomodateCount, hasMadia, introduce}, false};
+    return {{roomNo, accomodateCount, hasMadia, introduce}, isoccupaid};
 }
 
 void Administrator::administratorRegister(void)
@@ -95,7 +147,8 @@ void Administrator::administratorRegister(void)
                 "Alright! Administrator [" + this->administratorInfo.userName + "]\n" +
                 "Enter your password: "
             );
-        std::getline(std::cin, this->administratorInfo.passWord);
+        
+        hiddenPassword(this->administratorInfo.passWord);
 
         if (!this->administratorInfo.passWord.size())
         {
@@ -105,7 +158,7 @@ void Administrator::administratorRegister(void)
     }
 
     int offset = this->encryption(this->administratorInfo.passWord);
-    this->administratorInfo.writeToFile(this->writeStream, offset);
+    this->administratorInfo.writeAdminInfoToFile(this->writeStream, offset);
     this->administratorInfo.clearInfo();
 
     CORRECT_LOG(
@@ -124,15 +177,16 @@ void Administrator::loadRoomDataFile(const std::string & __path)
      */
     this->readStream.open(__path, std::ios_base::in | std::ios_base::binary);
 
-    if (!this->readStream.is_open())                            // 打开文件
+    if (!this->readStream.is_open() || !readStream)                            // 打开文件
     {
         throw std::runtime_error("Can't open file: " + __path);
     }
 
     std::streamsize fileBytes = getFileBytes(this->readStream);
 
-    char * buffer = new char[fileBytes];                          // 构建缓冲区，将整个文件的数据读入
-    //char * bufferBegin   = buffer;                              // 辅助指针，指向缓冲区之首
+    if (!fileBytes) { this->readStream.close(); return; }
+
+    char * buffer        = new char[fileBytes];                   // 构建缓冲区，将整个文件的数据读入
     char * bufferCurrent = buffer;                                // 辅助指针，指向缓冲区当前的操作位置
     char * bufferEnd     = buffer + fileBytes;                    // 辅助指针，指向缓冲区之尾
 
@@ -144,7 +198,7 @@ void Administrator::loadRoomDataFile(const std::string & __path)
      */
     while (bufferCurrent != bufferEnd)
     {
-        std::size_t objectSize = *reinterpret_cast<std::size_t *>(bufferCurrent);
+        std::size_t objectSize = *reinterpret_cast<std::size_t *>(bufferCurrent) + 1;
 
         this->roomRecord.push_back(this->getOneRoomState(bufferCurrent, bufferCurrent + objectSize));
 
@@ -202,7 +256,7 @@ Administrator::decryption(void)
     return AdministratorInfo({userName, cipherText});
 }
 
-Administrator::Administrator() : roomRecord(), reservationRecord(), administratorInfo()
+Administrator::Administrator() : reservationRecord(), administratorInfo()
 {
     this->loadRoomDataFile(DATAFILE_PATH); 
     this->readStream.open(ADMINISTRATOR_INFO_PATH, std::ios_base::in | std::ios_base::binary);
@@ -247,7 +301,6 @@ void Administrator::login(void)
                 );
                 continue;
             }
-
             break;
         }
 
@@ -258,7 +311,8 @@ void Administrator::login(void)
                 "] Hello Administrator [" + tempAdmiInfo.userName + 
                 "],\nYour password: "
             );
-            std::getline(std::cin, tempAdmiInfo.passWord);
+            
+            hiddenPassword(tempAdmiInfo.passWord);
 
             if (!tempAdmiInfo.passWord.size())
             {
@@ -334,26 +388,76 @@ bool Administrator::logout(void)
     return true;
 }
 
-void Administrator::showAllRoomState(void)
+void Administrator::addNewMeetingRoom(void)
 {
     using namespace MyLib::MyLoger;
 
-    std::for_each(
-        this->roomRecord.begin(), this->roomRecord.end(),
-        [](const Administrator::MettingRoomState & __meettingState)
+    Administrator::MettingRoomState tempRoomState;
+
+    while (true)
+    {
+        tempRoomState.getStateInfo();
+
+        if (
+                this->searchOneRoomState(tempRoomState.mettingRoom.getMeetingRoomNo()) != 
+                this->roomRecord.end()
+            )
         {
-            __meettingState.mettingRoom.show();
-
-            NOTIFY_LOG('[' + getCurrentTime() + " Administrator]: This meetting room\n");
-
-            if (__meettingState.hasocuupied)
-            {
-                std::cout << ERROR 
-                          << "HAS BEEN OCCUPIEDED.\n" 
-                          << ORIGINAL;
-            }
-            else 
-            { CORRECT_LOG("IS EMPTY.\n"); }
+            WARNING_LOG("Repeat record! Repeat again!\n");
+            continue;
         }
-    );
+        break;
+    }
+
+    tempRoomState.writeRoomStateTofile(this->writeStream);
+    this->roomRecord.push_back(std::move(tempRoomState));
+}
+
+std::vector<Administrator::MettingRoomState>::iterator 
+Administrator::searchOneRoomState(const std::string & __roomNo)
+{
+    // 先构造出一个临时的会议室类
+    MettingRoomState tempRoomState({{__roomNo, 0, false, ""}, false});
+
+    return std::find(this->roomRecord.begin(), this->roomRecord.end(), tempRoomState);
+}
+
+void Administrator::getOneRoomState(void)
+{
+    using namespace MyLib::MyLoger;
+
+    std::string roomNo;
+
+    while (true)
+    {
+        NOTIFY_LOG("Enter meeting room number to search: ");
+        std::getline(std::cin, roomNo);
+
+        if (!roomNo.size())
+        {
+            ERROR_LOG("Empty room number, please enter again!\n");
+            continue;
+        }
+
+        roomNo = roomNo.substr(0, 8);
+
+        break;
+    }
+
+    auto targetIter = this->searchOneRoomState(roomNo);
+
+    if (targetIter == this->roomRecord.end())
+    {
+        WARNING_LOG('[' + roomNo + "] are not in roomRecord.\n");
+    }
+    else { this->showOneRoomState(*targetIter); }
+    
+}
+
+void Administrator::showAllRoomState(void)
+{
+    for (const MettingRoomState & __meettingState : this->roomRecord)
+    {
+        this->showOneRoomState(__meettingState);
+    }
 }
