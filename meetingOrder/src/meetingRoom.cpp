@@ -1,10 +1,10 @@
 #include "../include/meetingRoom.h"
 
-void __Meeting_Room::writeToFile(void)
+void Meeting_Room::writeToFile(std::ofstream & __outputData)
 {
-    this->outPutData.open(DATAFILE_PATH, this->outputMode);
+    __outputData.open(DATAFILE_PATH, this->outputMode);
 
-    if (!this->outPutData.is_open()) 
+    if (!__outputData.is_open() || !__outputData) 
     {
         throw std::runtime_error("Can not open: " + DATAFILE_PATH + '\n');
     }
@@ -14,26 +14,26 @@ void __Meeting_Room::writeToFile(void)
     std::size_t objectBytes = this->getObjectBytes();
 
     // 写入整个类数据序列化后的字节数。
-    this->outPutData.write(reinterpret_cast<char *>(&objectBytes), sizeof(std::size_t));
+    __outputData.write(reinterpret_cast<char *>(&objectBytes), sizeof(std::size_t));
 
     // 写入 会议号字符串长度 + 会议号字符串
-    this->outPutData.write(reinterpret_cast<char *>(&roomNoLen), sizeof(std::size_t));
-    this->outPutData.write(this->roomNo.c_str(), this->roomNo.size());
+    __outputData.write(reinterpret_cast<char *>(&roomNoLen), sizeof(std::size_t));
+    __outputData.write(this->roomNo.c_str(), this->roomNo.size());
 
     // 写入会议室能容纳的人数
-    this->outPutData.write(reinterpret_cast<char *>(&this->roomContain), sizeof(std::size_t));
+    __outputData.write(reinterpret_cast<char *>(&this->roomContain), sizeof(std::size_t));
 
     // 写入是否支持多媒体
-    this->outPutData.write(reinterpret_cast<char *>(&this->hasMidia), 1);
+    __outputData.write(reinterpret_cast<char *>(&this->hasMidia), 1);
 
     // 写入会议室介绍字符串长度 + 会议号字符串
-    this->outPutData.write(reinterpret_cast<char *>(&introLen), sizeof(std::size_t));
-    this->outPutData.write(this->introduce.c_str(), this->introduce.size());
+    __outputData.write(reinterpret_cast<char *>(&introLen), sizeof(std::size_t));
+    __outputData.write(this->introduce.c_str(), this->introduce.size());
 
-    this->outPutData.close();
+    __outputData.close();
 }
 
-void __Meeting_Room::show(void) const noexcept
+void Meeting_Room::show(void) const noexcept
 {
     using namespace MyLib::MyLoger;
 
@@ -53,7 +53,7 @@ void __Meeting_Room::show(void) const noexcept
     printSplitLine(45, '-', std::cout);
 }
 
-void __Meeting_Room::inputInfo(void)
+void Meeting_Room::inputInfo(void)
 {
     using namespace MyLib::MyLoger;
     using namespace MyLib::cinCheck;
@@ -65,8 +65,18 @@ void __Meeting_Room::inputInfo(void)
         ""
     };
 
-    NOTIFY_LOG("Enter Meet Room No. (8 character limit): ");
-    std::getline(std::cin, this->roomNo);
+    while (true)
+    {
+        NOTIFY_LOG("Enter Meet Room No. (8 character limit): ");
+        std::getline(std::cin, this->roomNo);
+
+        if (!this->roomNo.size())
+        {
+            ERROR_LOG("Empty room number! Please enter again!\n");
+            continue;
+        }
+        break;
+    }
 
     istreamInputAndCheck(std::cin, this->roomContain, peopleAccomodate);
 
@@ -76,15 +86,23 @@ void __Meeting_Room::inputInfo(void)
     eatLine();
     this->hasMidia = (hasMedia) ? true : false;
 
-    NOTIFY_LOG("Enter meeting room introduce: ");
-    std::getline(std::cin, this->introduce);
+    while (true)
+    {
+        NOTIFY_LOG("Enter meeting room introduce: ");
+        std::getline(std::cin, this->introduce);
 
-    this->writeToFile();
+        if (!this->introduce.size())
+        {
+            ERROR_LOG("Empty meeting room introduce! Please enter again!\n");
+            continue;
+        }
+        break;
+    }
 
-    CORRECT_LOG("OK! Construct meeting room success! Write to file: [" + DATAFILE_PATH + "]\n");
+    //this->writeToFile();
 }
 
-std::ostream & operator<<(std::ostream & __os, const __Meeting_Room & __info)
+std::ostream & operator<<(std::ostream & __os, const Meeting_Room & __info)
 {
     using namespace MyLib::MyLoger;
 
