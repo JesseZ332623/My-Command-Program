@@ -15,13 +15,35 @@ class Administrator
 {
     private:
         /**
-         * @brief 一个描述一间会议室，
-         *        以及该会议室是否被占用的类
+         * @brief 一个描述一间会议室，以及该会议室是否被占用的类
          */
         struct MettingRoomState
         {
+            typedef Meeting_Room MeetingRoom;
+
             Meeting_Room mettingRoom;
             bool         hasocuupied;
+
+            //MettingRoomState(const MettingRoomState &&) = default;
+
+            /**
+             * @brief 输入这个类的信息。
+             */
+            void getStateInfo(void);
+
+            /**
+             * @brief 将 MettingRoomState 类的数据序列化后写入文件。
+             */
+            void writeRoomStateTofile(std::ofstream & __writeStream);
+
+            /**
+             * @brief 调用 Meeting_Room 类的 operator==() 去比较两个
+             *        MettingRoomState 类是否相同。 
+             */
+            friend bool operator==(const MettingRoomState & __a, const MettingRoomState & __b)
+            {
+                return __a.mettingRoom == __b.mettingRoom;
+            }
         };
 
         /**
@@ -37,13 +59,13 @@ class Administrator
              * 
              * @param __writeStream     输出文件流
              * @param offset            偏移量
-             */
-            void writeToFile(std::ofstream & __writeStream, const int offset);
+            */
+            void writeAdminInfoToFile(std::ofstream & __writeStream, const int offset);
 
             /**
              * @brief 清理掉整个对象的数据，
              *        防止有心之人中断程序后在内核转储文件里面拿到明文密码。
-             */
+            */
             void clearInfo(void) { this->userName.clear(); this->passWord.clear(); }
 
             /**
@@ -51,7 +73,7 @@ class Administrator
              */
             friend bool operator==(const AdministratorInfo & __a, const AdministratorInfo & __b)
             {
-                return ((__b.passWord == __a.passWord));
+                return (__b.passWord == __a.passWord);
             }
         };
 
@@ -117,8 +139,19 @@ class Administrator
         */
         MettingRoomState getOneRoomState(char * __first, char * __last);
 
-    public:
+        void showOneRoomState(const MettingRoomState & __meettingState);
 
+        /**
+         * @brief 通过会议室号查询单间会议室的信息。
+         * 
+         * @param __roomNo 会议室号字符串
+         * 
+         * @return 目标会议室类的迭代器
+         */
+        std::vector<MettingRoomState>::iterator 
+        searchOneRoomState(const std::string & __roomNo);
+
+    public:
         /**
          * @brief 默认构造函数。
         */
@@ -133,6 +166,18 @@ class Administrator
          * @brief 管理员登出操作。
          */
         bool logout(void);
+
+        /**
+         * @brief 增加新的会议室，
+         *        并写入到 `roomRecord` 动态数组 
+         *        和 `../data/meet_room_info.dat` 数据文件末尾。
+         */
+        void addNewMeetingRoom(void);
+
+        /**
+         * @brief 输入会议号，查询该会议号对应的会议室信息。
+         */
+        void getOneRoomState(void);
 
         /**
          * @brief 输出当前所有会议室的信息和占用状态。
