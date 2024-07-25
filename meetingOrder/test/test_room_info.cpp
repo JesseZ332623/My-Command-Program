@@ -10,15 +10,15 @@ int main(int argc, char const *argv[])
 
     std::vector<Meeting_Room> testMettingRoom;
 
-    testMettingRoom.push_back({"s4gdg6df", 128, true, "Test metting room A."});
+    testMettingRoom.push_back({"00000001", 128, true, "Test metting room A."});
     testMettingRoom[0].writeToFile();
-    testMettingRoom.push_back({"123456", 32, true, "Test metting room B."});
+    testMettingRoom.push_back({"00000002", 32, true, "Test metting room B."});
     testMettingRoom[1].writeToFile();
-    testMettingRoom.push_back({"123456", 45, true, "Test metting room C."});
+    testMettingRoom.push_back({"00000003", 45, true, "Test metting room C."});
     testMettingRoom[2].writeToFile();
-    testMettingRoom.push_back({"123456", 16, true, "Test metting room D."});
+    testMettingRoom.push_back({"00000004", 16, true, "Test metting room D."});
     testMettingRoom[3].writeToFile();
-    testMettingRoom.push_back({"123456", 128, true, "Test metting room E."});
+    testMettingRoom.push_back({"00000005", 128, true, "Test metting room E."});
     testMettingRoom[4].writeToFile();
 
     std::ifstream readStream(
