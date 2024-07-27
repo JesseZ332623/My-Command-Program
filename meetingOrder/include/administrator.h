@@ -2,7 +2,6 @@
 #define __ADMINISTRATOR_H_
 
 #include "./defs.h"
-
 #include "./meetingRoom.h"
 #include "./reservations.h"
 
@@ -27,7 +26,8 @@ class Administrator
             //MettingRoomState(const MettingRoomState &&) = default;
 
             /**
-             * @brief 输入这个类的信息。
+             * @brief 输入这个类的信息，
+             *        通常用于辅助构造一个类。
              */
             void getStateInfo(void);
 
@@ -43,6 +43,16 @@ class Administrator
             friend bool operator==(const MettingRoomState & __a, const MettingRoomState & __b)
             {
                 return __a.mettingRoom == __b.mettingRoom;
+            }
+
+            friend bool operator<(const MettingRoomState & __a, const MettingRoomState & __b)
+            {
+                return __a.mettingRoom < __b.mettingRoom;
+            }
+
+            friend bool operator>(const MettingRoomState & __a, const MettingRoomState & __b)
+            {
+                return __a.mettingRoom > __b.mettingRoom;
             }
         };
 
@@ -77,12 +87,15 @@ class Administrator
             }
         };
 
+        typedef std::vector<MettingRoomState>::iterator RoomStatesIter;
+
         // 用一个动态数组来管理所有的会议室
         std::vector<MettingRoomState> roomRecord;
 
         // 用一个动态数组来管理预约人员信息
         std::vector<Reservations> reservationRecord;
 
+        // 管理员用户账户信息结构体
         AdministratorInfo administratorInfo;
 
         std::ifstream readStream;
@@ -98,11 +111,11 @@ class Administrator
 
         /**
          * @brief 获取一个文件的实际字节数，
-         *        保证目标文件流处于打开状态，。
+         *        保证目标文件流处于打开状态。
          * 
          * @param __inputFstream        输入文件流 
          * 
-         * @return std::streamsize      一个文件的实际字节数
+         * @return `std::streamsize`    一个文件的实际字节数
          */
         std::streamsize getFileBytes(std::ifstream & __inputFstream);
 
@@ -139,6 +152,11 @@ class Administrator
         */
         MettingRoomState getOneRoomState(char * __first, char * __last);
 
+        /**
+         * @brief 显示单个会议室类的相关信息。
+         * 
+         * @param __meettingState   会议室类对象的引用
+         */
         void showOneRoomState(const MettingRoomState & __meettingState);
 
         /**
@@ -148,8 +166,20 @@ class Administrator
          * 
          * @return 目标会议室类的迭代器
          */
-        std::vector<MettingRoomState>::iterator 
-        searchOneRoomState(const std::string & __roomNo);
+        RoomStatesIter
+        searchOneRoomStateAux(const std::string & __roomNo);
+
+        /**
+         * @brief 输出修改会议室相关信息的操作。
+         */
+        void showModifyMenu(void);
+
+        /**
+         * @brief 对用户输入的选择进行不同的修改操作。
+         * 
+         * @param __choice  修改选择
+         */
+        void modifyOperator(const unsigned short __choice, RoomStatesIter __iter);
 
     public:
         /**
@@ -168,6 +198,11 @@ class Administrator
         bool logout(void);
 
         /**
+         * @brief 输出管理员可以操作的选项。
+         */
+        static void showOperatorMenu(void);
+
+        /**
          * @brief 增加新的会议室，
          *        并写入到 `roomRecord` 动态数组 
          *        和 `../data/meet_room_info.dat` 数据文件末尾。
@@ -175,9 +210,26 @@ class Administrator
         void addNewMeetingRoom(void);
 
         /**
+         * @brief 通过输入会议号删除某个指定的会议室，
+         *        也注意修改 `roomRecord` 动态数组 
+         *        和 `../data/meet_room_info.dat` 的数据。
+         */
+        void deleteMeetRoom(void);
+
+        /**
+         * @brief 删除所有的会议室记录。
+         */
+        void deleteAllMeetingRoom(void);
+
+        /**
+         * @brief 修改会议室的相关数据.
+         */
+        void modifyMeetRoomData(void);
+
+        /**
          * @brief 输入会议号，查询该会议号对应的会议室信息。
          */
-        void getOneRoomState(void);
+        void searchOneRoomState(void);
 
         /**
          * @brief 输出当前所有会议室的信息和占用状态。
