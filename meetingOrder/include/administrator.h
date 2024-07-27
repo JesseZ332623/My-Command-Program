@@ -73,7 +73,7 @@ class Administrator
             void writeAdminInfoToFile(std::ofstream & __writeStream, const int offset);
 
             /**
-             * @brief 清理掉整个对象的数据，
+             * @brief 清理掉整密码字符串的数据，
              *        防止有心之人中断程序后在内核转储文件里面拿到明文密码。
             */
             void clearInfo(void) { this->userName.clear(); this->passWord.clear(); }
@@ -185,7 +185,7 @@ class Administrator
         /**
          * @brief 默认构造函数。
         */
-        Administrator(void); 
+        Administrator(void);
        
         /**
          * @brief 如果确认管理员账户信息存在的话，进行登录操作。
@@ -196,6 +196,11 @@ class Administrator
          * @brief 管理员登出操作。
          */
         bool logout(void);
+
+        /**
+         * @brief 重置管理员的账户和密码。
+         */
+        void resetAccount(void);
 
         /**
          * @brief 输出管理员可以操作的选项。
