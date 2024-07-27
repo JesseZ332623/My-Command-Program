@@ -65,3 +65,18 @@ void showSoftwareInfo(void)
         "[Meeting room management system version: " + SOFTWARE_VERSION + "]\n"
     );
 }
+
+void clearFiledata(std::ofstream & __ofstream, const std::string & __path)
+{
+    /**
+     * 以清空模式打开指定文件，会阶段文件到空。
+     */
+    __ofstream.open(__path, std::ios_base::trunc);
+
+    if (!__ofstream.is_open() || !__ofstream)
+    {
+        throw std::runtime_error("Stream state error or file open failed!\n");
+    }
+
+    __ofstream.close();
+}

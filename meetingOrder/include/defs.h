@@ -31,4 +31,11 @@ bool checkQuit(const std::string & __argument);
  */
 void showSoftwareInfo(void);
 
+/**
+ * @brief 清空指定文件的数据。
+ * 
+ * @param __fstream     文件流（可以是 ifstream 也可以是 ofstream）
+ */
+void clearFiledata(std::ofstream & __fstream, const std::string & __path);
+
 #endif // __DEFS_H_
