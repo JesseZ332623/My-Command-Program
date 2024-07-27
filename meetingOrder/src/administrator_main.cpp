@@ -9,6 +9,7 @@ enum AdministratorChoice
     DELETE_ALL_ROOM_STATE,
     SHOW_ALL_ROOM_STATE,
     SHOW_OPERATOR_MENU,
+    RESET_ACCOUNT,
     LOG_OUT,
     EXIT_SYSYTEM
 };
@@ -80,6 +81,10 @@ int main(int argc, char const *argv[])
             case LOG_OUT:
                 if (administrator.logout()) { administrator.login(); }
                 break;
+
+            case RESET_ACCOUNT:
+                administrator.resetAccount();
+                break;
             
             case EXIT_SYSYTEM:
                 CORRECT_LOG("Have a good time! Bye!\n");
@@ -90,6 +95,5 @@ int main(int argc, char const *argv[])
 #endif
 
     DONE;
-
     return EXIT_SUCCESS;
 }
