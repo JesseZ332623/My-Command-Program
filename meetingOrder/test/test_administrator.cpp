@@ -14,7 +14,9 @@ int main(int argc, char const *argv[])
     {
         testAdministrator.addNewMeetingRoom();
 
-        testAdministrator.getOneRoomState();
+        testAdministrator.searchOneRoomState();
+
+        testAdministrator.deleteMeetRoom();
 
         NOTIFY_LOG("Quit to search and add? (Enter q to quit): ");
         std::cin >> ifQuit;
