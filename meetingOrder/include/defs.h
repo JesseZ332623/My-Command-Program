@@ -7,6 +7,7 @@
 
 static const std::string DATAFILE_PATH = "../data/meet_room_info.dat";  // 数据文件路径
 static const std::string ADMINISTRATOR_INFO_PATH = "../data/administratorInfo.dat";
+static const std::string SOFTWARE_VERSION = "1.0.0.0";
 
 /**
  * @brief 在输入密码的时候隐去密码的明文，避免泄漏。
@@ -14,5 +15,20 @@ static const std::string ADMINISTRATOR_INFO_PATH = "../data/administratorInfo.da
  * @param __password    要输入的密码字符串
  */
 void hiddenPassword(std::string & __password);
+
+/**
+ * @brief 检查是否要退出当前的操作
+ * 
+ * @param __argument    待检查的参数
+ * 
+ * @return `true`       输入了 Q 或 q 且字符串长度为 1
+ * @return `false`      上述情况之外
+ */
+bool checkQuit(const std::string & __argument);
+
+/**
+ * @brief 输出软件的详细信息，如版本号，软件名等。
+ */
+void showSoftwareInfo(void);
 
 #endif // __DEFS_H_
