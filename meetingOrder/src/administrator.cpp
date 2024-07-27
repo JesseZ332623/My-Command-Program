@@ -154,7 +154,6 @@ void Administrator::administratorRegister(void)
             DONE;
             exit(EXIT_SUCCESS);
         }
-
         break;
     }
 
@@ -400,7 +399,7 @@ bool Administrator::logout(void)
 
     istreamInputAndCheck(
         std::cin, confirm, logoutInfo,
-        [](const char __confirm) { return (__confirm != 'Y' || __confirm != 'N'); }
+        [](const char __confirm) { return (__confirm == 'Y' || __confirm == 'N'); }
     );
     eatLine();
 
@@ -412,6 +411,37 @@ bool Administrator::logout(void)
     }
 
     return true;
+}
+
+void Administrator::resetAccount(void)
+{
+    using namespace MyLib::MyLoger;
+    using namespace MyLib::cinCheck;
+
+    char confirm;
+    std::string administratorName = this->decryption().userName;
+
+    while (true)
+    {
+        WARNING_LOG(
+            "Administrator [" + administratorName + "].\n" + 
+            "Are you make sure to reset your account? (Y/N): "
+        );
+
+        std::cin >> confirm;
+        eatLine();
+
+        if (confirm == 'N') { CORRECT_LOG("BACK\n"); return; }
+        else if (confirm == 'Y') { break; }
+        else { ERROR_LOG("Enter (Y/N)!\n"); continue; }
+    }
+
+    clearFiledata(this->writeStream, ADMINISTRATOR_INFO_PATH);
+    CORRECT_LOG(
+        "Complete to clear account data file: [" + 
+        ADMINISTRATOR_INFO_PATH + "]\n"
+    );
+    this->administratorRegister();
 }
 
 void Administrator::showOperatorMenu(void)
@@ -426,11 +456,12 @@ void Administrator::showOperatorMenu(void)
         "1. Add new meeting room\t\t\t2. Modify meeting room data\n"
         "3. Search one meeting room state\t4. Delete one meeting room\n"
         "5. Delete all meeting room\t\t6. Show all room state\n"
-        "7. Show operator menu\n"
+        "7. Show operator menu\t\t\t"
     );
-
-    std::cout << WARNING << "8. LOG OUT\t\t\t\t"   << ORIGINAL;
-    std::cout << ERROR   << "9. EXIT SYSTEM" << ORIGINAL << '\n';
+    
+    NOTIFY_LOG("8. Reset account\n");
+    std::cout << WARNING << "9. LOG OUT\t\t\t\t"   << ORIGINAL;
+    std::cout << ERROR   << "10. EXIT SYSTEM" << ORIGINAL << '\n';
 
     printSplitLine(75, '-');
 }
@@ -497,8 +528,7 @@ void Administrator::deleteMeetRoom(void)
 
     this->roomRecord.erase(targetIter);
 
-    this->writeStream.open(DATAFILE_PATH, ios_base::trunc);
-    this->writeStream.close();
+    clearFiledata(this->writeStream, DATAFILE_PATH);
 
     for (MettingRoomState & __roomState : this->roomRecord)
     {
@@ -537,8 +567,7 @@ void Administrator::deleteAllMeetingRoom(void)
     }
 
     this->roomRecord.clear();
-    this->writeStream.open(DATAFILE_PATH, std::ios_base::trunc);
-    this->writeStream.close();
+    clearFiledata(this->writeStream, DATAFILE_PATH);
 
     CORRECT_LOG("OK! Clear room record complete!\n");
 }
@@ -596,7 +625,6 @@ void Administrator::modifyOperator(const unsigned short __choice, RoomStatesIter
                 std::cin, hasMedia, prompt, [](char __hasmedia) 
                 { return (__hasmedia != 'Y' || __hasmedia != 'N'); }
             );
-
             eatLine();
 
             (*__iter).mettingRoom.getMidaiState() = (hasMedia == 'Y') ? true : false;
@@ -669,8 +697,7 @@ void Administrator:: modifyMeetRoomData(void)
 
     this->modifyOperator(modifyChoice, tempIter);
 
-    this->writeStream.open(DATAFILE_PATH, std::ios_base::trunc);
-    this->writeStream.close();
+    clearFiledata(this->writeStream, DATAFILE_PATH);
 
     for (MettingRoomState & state : this->roomRecord)
     {
