@@ -15,7 +15,7 @@ class Meeting_Room
         std::string introduce;          // 会议室介绍
 
         std::ofstream outPutData;       // 输出文件流，在输入完数据后写入数据文件
-        const std::ios_base::openmode outputMode = 
+        std::ios_base::openmode outputMode = 
         std::ios_base::out | std::ios_base::binary | std::ios_base::app;  
 
         /**
@@ -47,8 +47,6 @@ class Meeting_Room
         ) : roomNo(__no.substr(0, 8)), roomContain(__peoples), hasMidia(__hasMidia), introduce(__introdeuce)
         {}
 
-        //Meeting_Room(const Meeting_Room &) = default;
-
         /**
          * @brief 将类数据序列化后写到数据文件中去。
          */
@@ -60,11 +58,24 @@ class Meeting_Room
         void inputInfo(void);
 
         /**
-         * @brief Get the Meeting Room No object
-         * 
-         * @return std::string& 
+         * @brief 获取会议室号字符串。
          */
-        std::string & getMeetingRoomNo(void) { return this->roomNo; }
+        std::string & getMeetingRoomNo(void) noexcept { return this->roomNo; }
+
+        /**
+         * @brief 获取会议室可容纳人数。
+        */
+        std::size_t & getRoomContain(void) noexcept { return this->roomContain; }
+
+        /**
+         * @brief 获取该会议室是否支持多媒体
+        */
+        bool & getMidaiState(void) noexcept { return this->hasMidia; }
+
+        /**
+         * @brief 获取会议室介绍字符串。
+         */
+        std::string & getIntroduce(void) noexcept { return this->introduce; }
 
         /**
          * @brief 往标准输出流输出会议室信息，文字渲染颜色。
@@ -101,8 +112,7 @@ class Meeting_Room
          * @brief 通过比较 roomNo 来比较 __a 是否等于 __b。
          */
         friend bool operator==(const Meeting_Room & __a, const Meeting_Room & __b) 
-        { return (__a.roomNo == __b.roomNo); }
-        
+        { return (__a.roomNo == __b.roomNo); }    
 };
 
 #endif // __MEETING_ROOM_H_
