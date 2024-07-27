@@ -1,7 +1,5 @@
 #include "../include/defs.h"
 
-#include <signal.h>
-
 void hiddenPassword(std::string & password)
 {
     using namespace std;
@@ -24,8 +22,7 @@ void hiddenPassword(std::string & password)
             if (!password.empty())
             {
                 password.pop_back();
-                //cout << "\b \b"; // 删除星号显示
-                CORRECT_LOG("\b \b"); // 删除最后一个星号
+                CORRECT_LOG("\b \b"); // 删除星号显示
                 backspacePressed = true;
             }
         }
@@ -35,11 +32,36 @@ void hiddenPassword(std::string & password)
             CORRECT_LOG('*');
             backspacePressed = false;
         }
-
-        // 忽略其他控制字符
-        if (backspacePressed && passwordChar == '\r')
-            break; // 如果按了退格后直接按回车，则退出
+        
+        /**
+         * 忽略其他控制字符，
+         * 如果按了退格后直接按回车，则退出。
+         */
+        if (backspacePressed && passwordChar == '\r') { break; }
     }
 
     putchar('\n');
+}
+
+bool checkQuit(const std::string & __argument)
+{
+    if (__argument.at(0) == 'q' && __argument.size() == 1)
+    {
+        return true;
+    }
+    else if (__argument.at(0) == 'Q' && __argument.size() == 1)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+void showSoftwareInfo(void)
+{
+    using namespace MyLib::MyLoger;
+
+    NOTIFY_LOG(
+        "[Meeting room management system version: " + SOFTWARE_VERSION + "]\n"
+    );
 }
