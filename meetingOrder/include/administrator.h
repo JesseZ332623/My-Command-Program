@@ -153,6 +153,12 @@ class Administrator
         MettingRoomState getOneRoomState(char * __first, char * __last);
 
         /**
+         * @brief 公共接口 `betchAddNewMettingRoom()` 的辅助函数，
+         *        传入数组拼接出一个会议号。
+         */
+        std::string assembleRoomNoString(const int number);
+
+        /**
          * @brief 显示单个会议室类的相关信息。
          * 
          * @param __meettingState   会议室类对象的引用
@@ -213,6 +219,11 @@ class Administrator
          *        和 `../data/meet_room_info.dat` 数据文件末尾。
          */
         void addNewMeetingRoom(void);
+
+        /**
+         * @brief 批量的增加会议室数据。
+         */
+        void betchAddNewMettingRoom(void);
 
         /**
          * @brief 通过输入会议号删除某个指定的会议室，
