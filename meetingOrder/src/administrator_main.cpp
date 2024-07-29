@@ -107,6 +107,8 @@ int main(int argc, char const *argv[])
     }
 #endif
 
+    CORRECT_LOG("Have a good time! Bye!\n");
     DONE;
+    
     return EXIT_SUCCESS;
 }
