@@ -17,6 +17,8 @@ getStateInfo(void)
 
     MyLib::cinCheck::eatLine();
 
+    this->appointmentName = "00000000";
+
     CORRECT_LOG("Complete to input state info!\n");
 }
 
@@ -30,8 +32,11 @@ writeRoomStateTofile(std::ofstream & __writeStream)
 
     __writeStream.open(DATAFILE_PATH, ios_base::out | ios_base::app | ios_base::binary);
     
-    // 然后打开文件将是否占用的数据写入（有点浪费）
+    // 打开文件将是否占用的数据写入
     __writeStream.write(reinterpret_cast<char *>(&this->hasocuupied), sizeof(bool));
+
+    // 将预约人员的姓名（管理员做初始化时为 8 个 '0'）写入
+    __writeStream.write(this->appointmentName.c_str(), 8);
 
     __writeStream.close();
 }
@@ -58,31 +63,6 @@ writeAdminInfoToFile(std::ofstream & __writeStream, const int offset)
     __writeStream.close();
 }
 
-std::streamsize
-Administrator::getFileBytes(std::ifstream & __inputFstream)
-{
-    if (!__inputFstream.is_open() || !__inputFstream) // 检查文件流的状态
-    {
-        throw std::runtime_error("File stream is not open or in error state.");
-    }
-
-    // 保存当前 read 指针的位置到 originalPos
-    std::streampos originalPos = __inputFstream.tellg();
-
-    // 移动指针到末尾，通过 tellg() 拿到文件的字节数。
-    __inputFstream.seekg(0, std::ios_base::end);
-    std::streamsize fileBytes = __inputFstream.tellg();
-
-    // 若 fileBytes 为 -1 说明出现了其他问题
-    if (fileBytes == -1) {
-        throw std::runtime_error("Failed to determine file size.");
-    }
-    // read 指针归位
-    __inputFstream.seekg(originalPos);
-
-    return fileBytes;
-}
-
 void Administrator::showOneRoomState(const MettingRoomState & __meettingState)
 {
     using namespace MyLib::MyLoger;
@@ -90,16 +70,23 @@ void Administrator::showOneRoomState(const MettingRoomState & __meettingState)
             
     __meettingState.mettingRoom.show();
 
-    NOTIFY_LOG('[' + getCurrentTime() + " Administrator]:\nThis meetting room ");
+    NOTIFY_LOG('[' + getCurrentTime() + " Administrator]\nThis meetting room: ");
 
     if (__meettingState.hasocuupied)    // 检查会议室是否被占用
     {
-        std::cout << ERROR 
-                  << "[HAS BEEN OCCUPIEDED].\n" 
-                  << ORIGINAL;
+        std::cout << ERROR << "[HAS BEEN OCCUPIEDED]\n" << ORIGINAL;
     }
     else 
-    { CORRECT_LOG("[IS EMPTY].\n"); }
+    { CORRECT_LOG("[IS EMPTY]\n"); }
+
+    delay(15);
+
+    NOTIFY_LOG("Appointment Name: ");
+    if (__meettingState.appointmentName == "00000000")
+    {
+        std::cout << ERROR << "[NONE]\n" << ORIGINAL;
+    }
+    else { CORRECT_LOG(__meettingState.appointmentName + '\n'); }
 
     delay(15);
 
@@ -122,9 +109,10 @@ Administrator::getOneRoomState(char * __first, char * __last)
         __first + sizeof(std::size_t) * 4 + 1 + roomNoLen, 
         __first + sizeof(std::size_t) * 4 + 1 + roomNoLen + introLen
     );
-    bool isoccupaid = (bool)(*__last);
+    bool isoccupaid = (bool)(*(__last - 9));
+    std::string appointmentName((__last- 8), __last);
     
-    return {{roomNo, accomodateCount, hasMadia, introduce}, isoccupaid};
+    return {{roomNo, accomodateCount, hasMadia, introduce}, isoccupaid, appointmentName};
 }
 
 std::string Administrator::assembleRoomNoString(const int number)
@@ -229,7 +217,7 @@ void Administrator::loadRoomDataFile(const std::string & __path)
      */
     while (bufferCurrent != bufferEnd)
     {
-        std::size_t objectSize = *reinterpret_cast<std::size_t *>(bufferCurrent) + 1;
+        std::size_t objectSize = *reinterpret_cast<std::size_t *>(bufferCurrent) + 1 + 8;
 
         this->roomRecord.push_back(this->getOneRoomState(bufferCurrent, bufferCurrent + objectSize));
 
@@ -265,7 +253,7 @@ Administrator::decryption(void)
 
     this->readStream.open(ADMINISTRATOR_INFO_PATH, std::ios_base::in | std::ios_base::binary);
 
-    std::size_t readBytes = this->getFileBytes(this->readStream);
+    std::size_t readBytes = getFileBytes(this->readStream);
 
     char * buffer = new char[readBytes];
     this->readStream.read(buffer, readBytes);
@@ -293,12 +281,12 @@ Administrator::decryption(void)
     return AdministratorInfo({userName, cipherText});
 }
 
-Administrator::Administrator() : reservationRecord(), administratorInfo()
+Administrator::Administrator() : administratorInfo()
 {
     this->loadRoomDataFile(DATAFILE_PATH); 
     this->readStream.open(ADMINISTRATOR_INFO_PATH, std::ios_base::in | std::ios_base::binary);
 
-    if (!this->getFileBytes(this->readStream))
+    if (!getFileBytes(this->readStream))
     {
         this->readStream.close();
         this->administratorRegister();
@@ -512,7 +500,7 @@ void Administrator::betchAddNewMettingRoom(void)
     using namespace MyLib::MyLoger;
 
     int addCount = 0;
-    MettingRoomState tempState = {{"", 0, false, ""}, false};
+    MettingRoomState tempState = {{"", 0, false, ""}, false, "00000000"};
 
     MessageStrings prompt = 
     {
@@ -534,6 +522,7 @@ void Administrator::betchAddNewMettingRoom(void)
         {
             tempState.mettingRoom.getMeetingRoomNo() = assembleRoomNoString(count);
             tempState.mettingRoom.getIntroduce() = "[NO INTRODUCE]";
+            tempState.appointmentName = "00000000";
 
             tempState.writeRoomStateTofile(this->writeStream);
             this->roomRecord.push_back(std::move(tempState));
@@ -555,6 +544,7 @@ void Administrator::betchAddNewMettingRoom(void)
         {
             tempState.mettingRoom.getMeetingRoomNo() = assembleRoomNoString(count);
             tempState.mettingRoom.getIntroduce() = "[NO INTRODUCE]";
+            tempState.appointmentName = "00000000";
 
             this->roomRecord.push_back(std::move(tempState));
             tempState.writeRoomStateTofile(this->writeStream);
