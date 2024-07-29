@@ -5,25 +5,23 @@
 #include "./meetingRoom.h"
 #include "./reservations.h"
 
-#include <vector>
-
 /**
  * @brief 管理员类的实现
  */
 class Administrator
 {
-    private:
+    public:
         /**
-         * @brief 一个描述一间会议室，以及该会议室是否被占用的类
+         * @brief 一个描述一间会议室，
+         *        该会议室是否被占用，以及被谁占用的类。
          */
         struct MettingRoomState
         {
             typedef Meeting_Room MeetingRoom;
 
-            Meeting_Room mettingRoom;
-            bool         hasocuupied;
-
-            //MettingRoomState(const MettingRoomState &&) = default;
+            Meeting_Room mettingRoom;       // 会议室类对象
+            bool         hasocuupied;       // 是否被占用
+            std::string  appointmentName;   // 预约这间会议室的人的用户名
 
             /**
              * @brief 输入这个类的信息，
@@ -41,20 +39,16 @@ class Administrator
              *        MettingRoomState 类是否相同。 
              */
             friend bool operator==(const MettingRoomState & __a, const MettingRoomState & __b)
-            {
-                return __a.mettingRoom == __b.mettingRoom;
-            }
+            { return __a.mettingRoom == __b.mettingRoom; }
 
             friend bool operator<(const MettingRoomState & __a, const MettingRoomState & __b)
-            {
-                return __a.mettingRoom < __b.mettingRoom;
-            }
+            { return __a.mettingRoom < __b.mettingRoom; }
 
             friend bool operator>(const MettingRoomState & __a, const MettingRoomState & __b)
-            {
-                return __a.mettingRoom > __b.mettingRoom;
-            }
+            { return __a.mettingRoom > __b.mettingRoom; }
         };
+
+    private:
 
         /**
          * @brief 描述一个管理员的信息，用户名，密码。
@@ -91,8 +85,8 @@ class Administrator
 
         // 用一个动态数组来管理所有的会议室
         std::vector<MettingRoomState> roomRecord;
-
-        // 用一个动态数组来管理预约人员信息
+        
+        // 用一个动态数组来管理所有的管理员
         std::vector<Reservations> reservationRecord;
 
         // 管理员用户账户信息结构体
@@ -108,16 +102,6 @@ class Administrator
          * @param __path                数据文件路径
          */
         void loadRoomDataFile(const std::string & __path);
-
-        /**
-         * @brief 获取一个文件的实际字节数，
-         *        保证目标文件流处于打开状态。
-         * 
-         * @param __inputFstream        输入文件流 
-         * 
-         * @return `std::streamsize`    一个文件的实际字节数
-         */
-        std::streamsize getFileBytes(std::ifstream & __inputFstream);
 
         /**
          * @brief 对管理员密码进行加密操作，使用凯撒密码。
