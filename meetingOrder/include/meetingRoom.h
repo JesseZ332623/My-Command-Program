@@ -44,8 +44,7 @@ class Meeting_Room
         Meeting_Room(
                         std::string __no, std::size_t __peoples, 
                         bool __hasMidia, std::string __introdeuce
-        ) : roomNo(__no.substr(0, 8)), roomContain(__peoples), hasMidia(__hasMidia), introduce(__introdeuce)
-        {}
+        ) : roomNo(__no.substr(0, 8)), roomContain(__peoples), hasMidia(__hasMidia), introduce(__introdeuce) {}
 
         /**
          * @brief 将类数据序列化后写到数据文件中去。
