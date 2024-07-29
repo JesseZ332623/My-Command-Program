@@ -127,6 +127,14 @@ Administrator::getOneRoomState(char * __first, char * __last)
     return {{roomNo, accomodateCount, hasMadia, introduce}, isoccupaid};
 }
 
+std::string Administrator::assembleRoomNoString(const int number)
+{
+    std::string roomNo = std::to_string(number);
+    int zeroLen = 8 - roomNo.size();
+
+    return std::string(zeroLen, '0') + roomNo;
+}
+
 void Administrator::administratorRegister(void)
 {
     using namespace MyLib::MyLoger;
@@ -453,15 +461,15 @@ void Administrator::showOperatorMenu(void)
     printSplitLine(75, '-');
 
     ORIGINAL_LOG(
-        "1. Add new meeting room\t\t\t2. Modify meeting room data\n"
-        "3. Search one meeting room state\t4. Delete one meeting room\n"
-        "5. Delete all meeting room\t\t6. Show all room state\n"
-        "7. Show operator menu\t\t\t"
+        "1. Add new meeting room\t\t\t2. Betch add new meeting room\n"
+        "3. Modify meeting room data\t\t4. Search one meeting room state\n"
+        "5. Delete one meeting room\t\t6. Delete all meeting room\n"
+        "7. Show all room state\t\t\t8. Show operator menu\n"
     );
     
-    NOTIFY_LOG("8. Reset account\n");
-    std::cout << WARNING << "9. LOG OUT\t\t\t\t"   << ORIGINAL;
-    std::cout << ERROR   << "10. EXIT SYSTEM" << ORIGINAL << '\n';
+    NOTIFY_LOG("9. Reset account\n");
+    std::cout << WARNING << "10. LOG OUT\t\t\t\t"   << ORIGINAL;
+    std::cout << ERROR   << "0. EXIT SYSTEM" << ORIGINAL << '\n';
 
     printSplitLine(75, '-');
 }
@@ -498,13 +506,75 @@ void Administrator::addNewMeetingRoom(void)
     CORRECT_LOG("OK! Push back tempRoomState to roomRecord\n");
 }
 
+void Administrator::betchAddNewMettingRoom(void)
+{
+    using namespace MyLib::cinCheck;
+    using namespace MyLib::MyLoger;
+
+    int addCount = 0;
+    MettingRoomState tempState = {{"", 0, false, ""}, false};
+
+    MessageStrings prompt = 
+    {
+        "How much meeting room you want to increase (Press -1 to back)? ",
+        "Enter number please!\n",
+        "Don't create data too much! Range = (1 ~ 30)\n",
+    };
+
+    istreamInputAndCheck(
+        std::cin, addCount, prompt,
+        [](const int __count){ return (__count >= -1 && __count <= 30); }
+    );
+
+    if (addCount == -1) { CORRECT_LOG("BACK\n"); return; }
+
+    if (!this->roomRecord.size())
+    {
+        for (int count = 1; count <= addCount; ++count)
+        {
+            tempState.mettingRoom.getMeetingRoomNo() = assembleRoomNoString(count);
+            tempState.mettingRoom.getIntroduce() = "[NO INTRODUCE]";
+
+            tempState.writeRoomStateTofile(this->writeStream);
+            this->roomRecord.push_back(std::move(tempState));
+        }
+    }
+    else
+    {
+        RoomStatesIter maxIter = 
+        std::max(this->roomRecord.begin(), this->roomRecord.end());
+
+        if (maxIter == this->roomRecord.end()) { --maxIter; }
+
+#if true
+        int maxNumber = 
+        std::stoi((*maxIter).mettingRoom.getMeetingRoomNo());
+        int limit = maxNumber + addCount;
+
+        for (int count = maxNumber + 1; count <= limit; ++count)
+        {
+            tempState.mettingRoom.getMeetingRoomNo() = assembleRoomNoString(count);
+            tempState.mettingRoom.getIntroduce() = "[NO INTRODUCE]";
+
+            this->roomRecord.push_back(std::move(tempState));
+            tempState.writeRoomStateTofile(this->writeStream);
+        }
+#endif
+    }
+
+    CORRECT_LOG(
+        "OK! Complete to add [" + 
+        std::to_string(addCount) + "] default room record.\n"
+    );
+}
+
 void Administrator::deleteMeetRoom(void)
 {
     using namespace MyLib::MyLoger;
     using std::ios_base;
 
     std::string tempRoomNo;
-    std::vector<MettingRoomState>::iterator targetIter;
+    RoomStatesIter targetIter;
 
     CORRECT_LOG("[DELETE ONE MEETING ROOM DATA]\n");
 
@@ -520,7 +590,7 @@ void Administrator::deleteMeetRoom(void)
 
         if (targetIter == this->roomRecord.end())
         {
-            ERROR_LOG("NO. " + tempRoomNo + "are not in room record! Please enter again.\n");
+            ERROR_LOG("NO. [" + tempRoomNo + "] are not in room record! Please enter again.\n");
             continue;
         }
         break;
@@ -647,7 +717,7 @@ void Administrator::modifyOperator(const unsigned short __choice, RoomStatesIter
     }
 }
 
-void Administrator:: modifyMeetRoomData(void)
+void Administrator::modifyMeetRoomData(void)
 {
     using namespace MyLib::MyLoger;
     using namespace MyLib::cinCheck;
