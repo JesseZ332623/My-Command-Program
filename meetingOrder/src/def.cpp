@@ -80,3 +80,23 @@ void clearFiledata(std::ofstream & __ofstream, const std::string & __path)
 
     __ofstream.close();
 }
+
+std::streamsize getFileBytes(std::ifstream & __inputStream)
+{
+    if (!__inputStream.is_open() || !__inputStream) {
+        throw std::runtime_error("getFileBytes(): File stream is not open or in error state.\n");
+    }
+
+    std::streampos originalPos = __inputStream.tellg();
+
+    __inputStream.seekg(0, std::ios_base::end);
+    std::streamsize fileBytes = __inputStream.tellg();
+
+    if (fileBytes == -1) {
+        std::runtime_error("Failed to determine file size.\n");
+    }
+
+    __inputStream.seekg(originalPos);
+
+    return fileBytes;
+}
