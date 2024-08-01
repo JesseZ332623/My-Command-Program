@@ -63,18 +63,20 @@ writeAdminInfoToFile(std::ofstream & __writeStream, const int offset)
     __writeStream.close();
 }
 
-void Administrator::showOneRoomState(const MettingRoomState & __meettingState)
+bool Administrator::showOneRoomState(const MettingRoomState & __meettingState)
 {
     using namespace MyLib::MyLoger;
     using namespace MyLib::MyDelay;
             
     __meettingState.mettingRoom.show();
+    bool isOcuupaied = false;
 
     NOTIFY_LOG('[' + getCurrentTime() + " Administrator]\nThis meetting room: ");
 
     if (__meettingState.hasocuupied)    // 检查会议室是否被占用
     {
         std::cout << ERROR << "[HAS BEEN OCCUPIEDED]\n" << ORIGINAL;
+        isOcuupaied = true;
     }
     else 
     { CORRECT_LOG("[IS EMPTY]\n"); }
@@ -91,6 +93,8 @@ void Administrator::showOneRoomState(const MettingRoomState & __meettingState)
     delay(15);
 
     printSplitLine(45, '-'); std::cout.put('\n');
+
+    return isOcuupaied;
 }
 
 Administrator::MettingRoomState
@@ -825,6 +829,7 @@ void Administrator::showAllRoomState(void)
     using MyLib::MyDelay::delay;
 
     CORRECT_LOG("[SHOW ALL MEETING ROOM STATE]\n");
+    int occupaiedCount = 0;
 
     if (!this->roomRecord.size()) {
         ERROR_LOG("NO ROOM RECORD HERE\n");
@@ -835,7 +840,13 @@ void Administrator::showAllRoomState(void)
     std::sort(this->roomRecord.begin(), this->roomRecord.end());
     for (const MettingRoomState & __meettingState : this->roomRecord)
     {
-        this->showOneRoomState(__meettingState);
+        if (this->showOneRoomState(__meettingState)) { ++occupaiedCount; }
         delay(15);
     }
+
+    NOTIFY_LOG("Total = " + std::to_string(this->roomRecord.size()) + '\n');
+    CORRECT_LOG("Empty = " + std::to_string(this->roomRecord.size() - occupaiedCount) + '\n');
+
+    std::cout << ERROR << " " << ORIGINAL;
+    ERROR_LOG("Occupaid = " + std::to_string(occupaiedCount) + "\n\n");
 }
