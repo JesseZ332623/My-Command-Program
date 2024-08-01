@@ -1,51 +1,116 @@
 #include "../include/reservations.h"
 
-#include <random>
-#include <cstring>
-
-Reservations::ReservationInfo::Affine 
-Reservations::ReservationInfo::encryption(void)
+void
+Reservations::ReservationInfo::getInput(void)
 {
-    Affine constants;
-    std::random_device randDeviece;
-    std::mt19937_64 randEngine(randDeviece());
+    using namespace MyLib::MyLoger;
 
-    std::uniform_int_distribution<> distribute(114, 514);
+#if false
+    NOTIFY_LOG("Enter your user name (8 chractor limit): ");
+    std::getline(std::cin, this->name);
 
-    constants.a = distribute(randEngine);
-    constants.b = distribute(randDeviece);
+    this->name = this->name.substr(0, 8);
+#endif
 
-    printf("a = %d, b = %d\n", constants.a, constants.b);
-
-    int passwordNum = std::stoi(this->password);
-
-    this->password = std::to_string(std::abs(passwordNum * constants.a - constants.b));
-
-    return constants;
+    NOTIFY_LOG("Hello XXX\nEnter your password: ");
+    hiddenPassword(this->password);
+    //std::getline(std::cin, this->password);
 }
 
-void Reservations::ReservationInfo::
+void 
+Reservations::ReservationInfo::
 writeReservationDataToFile(std::ofstream & __writeStream)
 {
-    using std::ios_base;
+    __writeStream.open(RESERVATIONS_INFO_PATH, std::ios_base::out | std::ios_base::app);
 
-    Affine constants = encryption();
-    std::size_t passwordLen = this->password.size();
+    //__writeStream << this->name + '\n';
 
-    /**
-     * 明日继续
-     */
-    __writeStream.open(RESERVATIONS_INFO_PATH, ios_base::binary | ios_base::app);
+    std::string cipherText = cryption.encryption(this->password);
 
-    __writeStream.write(this->name.c_str(), 8);
-    __writeStream.write(reinterpret_cast<char *>(&constants), sizeof(Affine));
-    std::memset(&constants, 0, sizeof(Affine));
-
-    __writeStream.write(reinterpret_cast<char *>(&passwordLen), sizeof(std::size_t));
-    __writeStream.write(this->password.c_str(), passwordLen);
-
-    this->clearInfo();
+    __writeStream << cipherText;
 
     __writeStream.close();
+}
 
+void
+Reservations::ReservationInfo::readDataToFill(std::ifstream & __readStream)
+{
+    using namespace MyLib::MyLoger;
+
+    __readStream.open(RESERVATIONS_INFO_PATH, std::ios_base::in);
+
+    //std::string accountInfo;
+    std::string tempPassword;
+    __readStream >> tempPassword;
+
+    printf("%s\n", tempPassword);
+
+    //this->name               = accountInfo.substr(0, 8);
+    //std::string tempPassword = accountInfo.substr(9, accountInfo.size());
+
+    this->password = cryption.decryption(tempPassword);
+
+    __readStream.close();
+}
+
+void Reservations::loadAccountInfo(void)
+{
+    using std::ios_base;
+    using namespace MyLib::MyLoger;
+
+    this->readStream.open(RESERVATIONS_INFO_PATH);
+
+    if (!getFileBytes(this->readStream))
+    {
+        this->readStream.close();
+
+        NOTIFY_LOG(
+            '[' + getCurrentTime() + "] Appointment person register: \n");
+        this->reservationInfo.getInput();
+        this->reservationInfo.writeReservationDataToFile(this->writeStream);
+    }
+
+    this->readStream.close();
+}
+
+Reservations::Reservations(void) : currentReservationCount(0ULL)
+{
+    this->loadAccountInfo();
+}
+
+void Reservations::login(void)
+{
+    using namespace MyLib::MyLoger;
+
+    ReservationInfo tempInfo;
+    this->reservationInfo.readDataToFill(this->readStream);
+
+    this->reservationInfo.show();
+
+    while (true)
+    {
+        NOTIFY_LOG('[' + getCurrentTime() + "] Appointment person login: \n");
+        tempInfo.getInput();
+
+        tempInfo.show();
+
+        if (tempInfo == this->reservationInfo)
+        {
+            CORRECT_LOG
+            (
+                '[' + getCurrentTime() + "] Login success! Welcome " + 
+                this->reservationInfo.name + "!\n"
+            );
+            break;
+        }
+        else
+        {
+            ERROR_LOG("User name of password error.\n");
+            tempInfo.clearInfo();
+            continue;
+        }
+    }
+
+    this->reservationInfo.clearInfo();
+    tempInfo.clearInfo();
 }
