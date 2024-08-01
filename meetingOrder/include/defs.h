@@ -9,7 +9,7 @@
 
 static const std::string DATAFILE_PATH = "../data/meet_room_info.dat";  // 数据文件路径
 static const std::string ADMINISTRATOR_INFO_PATH = "../data/administratorInfo.dat";
-static const std::string RESERVATIONS_INFO_PATH = "../data/reservationsInfo.dat";
+static const std::string RESERVATIONS_INFO_PATH = "../data/reservationsInfo.txt";
 static const std::string SOFTWARE_VERSION = "1.0.0.0";
 
 /**
