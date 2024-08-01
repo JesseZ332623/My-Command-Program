@@ -5,9 +5,11 @@
 #include "./meetingRoom.h"
 #include "./reservations.h"
 
+//#include <climits>
+
 /**
  * @brief 管理员类的实现
- */
+*/
 class Administrator
 {
     public:
@@ -147,7 +149,7 @@ class Administrator
          * 
          * @param __meettingState   会议室类对象的引用
          */
-        void showOneRoomState(const MettingRoomState & __meettingState);
+        bool showOneRoomState(const MettingRoomState & __meettingState);
 
         /**
          * @brief 通过会议室号查询单间会议室的信息。
